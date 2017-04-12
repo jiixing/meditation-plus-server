@@ -1,4 +1,5 @@
 import Message from '../models/message.model.js';
+import User from '../models/user.model.js';
 let ObjectId = require('mongoose').Types.ObjectId;
 import moment from 'moment';
 
@@ -214,6 +215,36 @@ export default (app, router, io) => {
       });
 
       res.json(populated);
+    } catch (err) {
+      res
+        .status(err.name === 'ValidationError' ? 400 : 500)
+        .send(err);
+    }
+  });
+
+  /**
+   * @api {post} /api/autocomplete Search users matching a search string
+   * @apiName ListAutocomplete
+   * @apiGroup Message
+   *
+   * @apiParam {String} search pattern for username
+   */
+  router.post('/api/message/autocomplete', async (req, res) => {
+    try {
+      const search = req.body.search ? req.body.search : '';
+
+      if (!search) {
+        return res.sendStatus(400);
+      }
+
+      let matches = await User
+        .find({
+          name: new RegExp(search, 'i')
+        }, 'name gravatarHash _id country')
+        .lean()
+        .exec();
+
+      res.json(matches);
     } catch (err) {
       res
         .status(err.name === 'ValidationError' ? 400 : 500)
