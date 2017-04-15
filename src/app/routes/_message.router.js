@@ -92,9 +92,25 @@ export default (app, router, io) => {
    */
   router.post('/api/message', async (req, res) => {
     try {
+      let mentions = req.body.mentions ? req.body.mentions : null;
+
+      if (mentions) {
+        mentions = mentions.filter(user => {
+          // check if message text actually contains the mentioning
+          if (req.body.text.indexOf('@' + user.name) > -1) {
+            // notify user if possible
+            // ...
+            return true;
+          } else {
+            return false;
+          }
+        });
+      }
+
       let message = await Message.create({
         text: req.body.text,
-        user: req.user._doc
+        user: req.user._doc,
+        mentions: mentions
       });
 
       // fetch previous message to detect missed timespans on the client
@@ -115,6 +131,7 @@ export default (app, router, io) => {
         previous: previousMessage,
         current: populated
       });
+
 
       res.json(populated);
     } catch (err) {
@@ -239,8 +256,12 @@ export default (app, router, io) => {
 
       let matches = await User
         .find({
-          name: new RegExp(search, 'i')
+          name: new RegExp(search, 'i'),
         }, 'name gravatarHash _id country')
+        .sort({
+          lastActive: -1
+        })
+        .limit(10)
         .lean()
         .exec();
 
