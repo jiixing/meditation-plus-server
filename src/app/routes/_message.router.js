@@ -248,15 +248,15 @@ export default (app, router, io) => {
    */
   router.post('/api/message/autocomplete', async (req, res) => {
     try {
-      const search = req.body.search ? req.body.search : '';
+      const query = req.body.query ? req.body.query : '';
 
-      if (!search) {
+      if (!query) {
         return res.sendStatus(400);
       }
 
       let matches = await User
         .find({
-          name: new RegExp(search, 'i'),
+          name: new RegExp(query, 'i'),
         }, 'name gravatarHash _id country')
         .sort({
           lastActive: -1
