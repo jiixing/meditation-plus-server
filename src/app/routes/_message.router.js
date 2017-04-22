@@ -93,17 +93,30 @@ export default (app, router, io) => {
    */
   router.post('/api/message', async (req, res) => {
     try {
-      let mentions = req.body.mentions ? req.body.mentions : null;
+      let text = req.body.text ? req.body.text : '';
+      let mentions = [];
 
-      if (mentions) {
-        mentions = mentions.filter(user => {
+      let possibleMentions = text.match(new RegExp('@[^@\\s]*(\\s[^@\\s]+)?$', 'gi'));
+
+      if (possibleMentions) {
+        possibleMentions.map(name => {
+          let user = await User.find({
+            name: name
+          });
+
+          if (user.length === 1) {
+            mentions.push({
+              _id: _id,
+              name: name
+            });
+          }
+
           // check if message text actually contains the mentioning
-          if (req.body.text.indexOf('@' + user.name) > -1) {
+          if (user && req.body.text.indexOf('@' + user.name) > -1) {
             // notify user if possible
             // ...
-            return true;
-          } else {
-            return false;
+
+            mentnions.push({ _id: user._id, name: user.name });
           }
         });
       }
@@ -259,7 +272,7 @@ export default (app, router, io) => {
         .find({
           name: new RegExp('^' + escapeStringRegexp(query), 'i'),
           // earlier than 1 month
-          lastActive: { $lt: Date.now() - 2628E6 }
+          // lastActive: { $lt: Date.now() - 2628E6 }
         }, 'name gravatarHash _id country')
         .sort({
           lastActive: -1
