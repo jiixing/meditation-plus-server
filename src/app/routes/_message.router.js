@@ -2,6 +2,7 @@ import Message from '../models/message.model.js';
 import User from '../models/user.model.js';
 let ObjectId = require('mongoose').Types.ObjectId;
 import moment from 'moment';
+import escapeStringRegexp from 'escape-string-regexp';
 
 export default (app, router, io) => {
 
@@ -256,7 +257,9 @@ export default (app, router, io) => {
 
       let matches = await User
         .find({
-          name: new RegExp(query, 'i'),
+          name: new RegExp('^' + escapeStringRegexp(query), 'i'),
+          // earlier than 1 month
+          lastActive: { $lt: Date.now() - 2628E6 }
         }, 'name gravatarHash _id country')
         .sort({
           lastActive: -1
