@@ -1,6 +1,6 @@
 import { ProfileHelper } from './profile.js';
 import { expect } from 'chai';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import { _ } from 'lodash';
 
 describe('ProfileHelper', () => {
@@ -34,7 +34,7 @@ describe('ProfileHelper', () => {
       lastWeeks: {},
       lastDays: {}
     };
-    check.lastMonths[date.format('MMM')] = 60;
+    check.lastMonths[date.format('MMM YY')] = 60;
     check.lastWeeks[date.format('YY-w')] = 60;
     check.lastDays[date.format('Do')] = 60;
 

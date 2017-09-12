@@ -1,6 +1,6 @@
 import Meditation from '../models/meditation.model.js';
 import timezone from '../helper/timezone.js';
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 export class ProfileHelper {
   async calculateStats(user) {
@@ -77,8 +77,8 @@ export class ProfileHelper {
     const ts = meditations.timespan;
 
     // adding times of last 10 months
-    meditations.lastMonths[date.format('MMM')] =
-      this.setValue(meditations.lastMonths[date.format('MMM')], value, add);
+    meditations.lastMonths[date.format('MMM YY')] =
+      this.setValue(meditations.lastMonths[date.format('MMM YY')], value, add);
 
     // adding times of last 10 weeks
     if (date >= ts.tenWeeksAgo) {

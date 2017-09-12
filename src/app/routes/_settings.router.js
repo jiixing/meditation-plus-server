@@ -1,34 +1,50 @@
-import settingsHelper from '../helper/settings.js';
+import Settings from '../models/settings.model.js';
 
 export default (app, router, admin) => {
   /**
-   * @api {post} /api/settings/appointments Update appointment's increment (of hours) parameter
-   * @apiName UpdateAppointmentIncrement
+   * @api {get} /api/settings Get the settings entity
+   * @apiName GetSettings
    * @apiGroup Settings
    */
-  router.post('/api/settings/appointments', admin, async (req, res) => {
+  router.get('/api/settings', async (req, res) => {
     try {
-      const increment = req.body.increment ? req.body.increment : 0;
-      await settingsHelper.set('appointmentIncrement', increment);
+      // Find settings entity or create a new one with the in the
+      // Settings model defined defaults.
+      const settings = await Settings.findOneAndUpdate({}, {}, {
+        new: true,
+        upsert: true,
+        setDefaultsOnInsert: true
+      });
 
-      res.sendStatus(200);
+      res.json(settings);
     } catch (err) {
       res.status(500).send(err);
     }
   });
 
   /**
-   * @api {get} /api/settings/appointments Get appointment's increment (of hours) parameter
-   * @apiName GetAppointmentIncrement
+   * @api {put} /api/settings Change the settings entity
+   * @apiName SetProperty
    * @apiGroup Settings
-   *
-   * @apiSuccess {Number}   increment           value of hours to add
    */
-  router.get('/api/settings/appointments', async (req, res) => {
+  router.put('/api/settings/:property', admin, async (req, res) => {
     try {
-      const increment = await settingsHelper.get('appointmentIncrement');
+      if (!req.params.property || typeof(req.body.value) === 'undefined') {
+        return res.sendStatus(400);
+      }
 
-      res.json(increment ? increment : 0);
+      const settings = {};
+      settings[req.params.property] = req.body.value;
+
+      // Find settings entity or create a new one with the in the
+      // Settings model defined defaults and then update it.
+      await Settings.findOneAndUpdate({}, settings, {
+        new: true,
+        upsert: true,
+        setDefaultsOnInsert: true
+      });
+
+      res.sendStatus(200);
     } catch (err) {
       res.status(500).send(err);
     }

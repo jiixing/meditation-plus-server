@@ -1,6 +1,6 @@
 import Meditation from '../models/meditation.model.js';
 import User from '../models/user.model.js';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import timezone from '../helper/timezone.js';
 import { logger } from '../helper/logger.js';
 import push from '../helper/push.js';
@@ -184,23 +184,41 @@ export default (app, router, io) => {
       io.sockets.emit('meditation', 'no content');
 
       // setup PUSH notification if allowed
-      if (user.notifications.meditation) {
+      if (!req.body.start && user.notifications.meditation) {
         if (walking) {
-          setTimeout(() => push.send({
-            _id: user._id
-          }, {
-            title: 'Walking done',
-            vibrate: [100]
-          }), walking * 60000);
+          setTimeout(() => {
+            // check if meditation has been stopped
+            Meditation
+              .findOne({ _id: created._id })
+              .then(doc => {
+                if (doc && doc.walking == walking) {
+                  push.send({
+                    _id: user._id
+                  }, {
+                    title: 'Walking done',
+                    vibrate: [100]
+                  });
+                }
+              });
+          }, walking * 60000);
         }
 
         if (sitting) {
-          setTimeout(() => push.send({
-            _id: user._id
-          }, {
-            title: 'Sitting done',
-            vibrate: [100]
-          }), (walking + sitting) * 60000);
+          setTimeout(() => {
+            // check if meditation has been stopped
+            Meditation
+              .findOne({ _id: created._id })
+              .then(doc => {
+                if (doc && doc.sitting == sitting) {
+                  push.send({
+                    _id: user._id
+                  }, {
+                    title: 'Sitting done',
+                    vibrate: [100]
+                  });
+                }
+              });
+          }, (walking + sitting) * 60000);
         }
       }
 

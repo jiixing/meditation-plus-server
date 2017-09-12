@@ -32,7 +32,7 @@ let userSchema = mongoose.Schema({
     livestream: Boolean,
     // relevant for admins only
     testimonial: Boolean,
-    schedule: Boolean,
+    appointment: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PushSubscriptions' }]
   }
 });
 
